@@ -32,6 +32,19 @@ class DetectorTests(unittest.TestCase):
     def test_lookalike_domain_not_misclassified(self):
         self.assertEqual(identify_provider({"destination": "api.openai.com.attacker.example"}), "unknown")
 
+
+    def test_luhn_valid_card_is_detected_and_masked(self):
+        card = "4111 1111 1111 1111"
+        result = analyze_event({"content": f"card={card}"})
+        finding = next(f for f in result["findings"] if f["type"] == "Possible payment card number")
+        self.assertIn("****1111", finding["evidence"])
+        self.assertNotIn(card, str(result))
+        self.assertNotIn("4111111111111111", str(result))
+
+    def test_luhn_invalid_card_candidate_is_not_reported(self):
+        result = analyze_event({"content": "card=4111 1111 1111 1112"})
+        self.assertFalse(any(f["type"] == "Possible payment card number" for f in result["findings"]))
+
     def test_empty_event_is_safe(self):
         result = analyze_event({})
         self.assertEqual(result["provider"], "unknown")
