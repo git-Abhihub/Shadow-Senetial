@@ -19,6 +19,7 @@ SEVERITY_POINTS = {"low": 10, "medium": 30, "high": 60, "critical": 90}
 SENSITIVE_FILE_RE = re.compile(r"(?:\.env(?:\.[\w-]+)?|id_rsa|id_ed25519|credentials(?:\.json)?|secrets?\.(?:json|ya?ml)|\.aws[/\\]credentials)", re.I)
 READ_COMMAND_RE = re.compile(r"\b(?:cat|type|Get-Content|more|less|head|tail|\bmore\b)\b", re.I)
 EXFIL_COMMAND_RE = re.compile(r"\b(?:curl|wget|Invoke-WebRequest|iwr)\b[^\n|]*\|\s*(?:sh|bash|powershell)\b", re.I)
+CARD_CANDIDATE_RE = re.compile(r"(?<!\d)(?:\d[ -]?){13,19}(?!\d)")
 
 def _entropy(value: str) -> float:
     if not value:
