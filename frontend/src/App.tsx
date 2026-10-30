@@ -4,7 +4,7 @@ import { Activity, ShieldAlert, ShieldCheck, Cpu, RefreshCw, Upload, Search, Zap
 type Finding = { type: string; severity: string; evidence: string }
 type EventRow = { timestamp?: string; process: string; destination: string; provider: string; action: string; risk_score: number; risk_level: string; finding_count: number; findings: Finding[] }
 type Summary = { total_events: number; flagged_events: number; critical_events: number; providers: number; average_risk: number }
-const API = 'http://127.0.0.1:8000'
+const API = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000').replace(/\/$/, '')
 const emptySummary: Summary = { total_events: 0, flagged_events: 0, critical_events: 0, providers: 0, average_risk: 0 }
 
 export default function App() {
