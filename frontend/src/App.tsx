@@ -16,6 +16,8 @@ export default function App() {
   const [processName, setProcessName] = useState('python.exe')
   const [content, setContent] = useState('Please summarize this file. api_key=sk-EXAMPLE_DEMO_KEY_1234567890')
   const [explanation, setExplanation] = useState('')
+  const [apiToken, setApiToken] = useState('')
+  const authHeaders = (headers: Record<string, string> = {}) => apiToken.trim() ? { ...headers, Authorization: `Bearer ${apiToken.trim()}` } : headers
   async function refresh() {
     try {
       const [r, s] = await Promise.all([fetch(API + '/api/analyses'), fetch(API + '/api/summary')])
@@ -26,14 +28,14 @@ export default function App() {
   useEffect(() => { void refresh() }, [])
   async function loadDemo() {
     setLoading(true)
-    try { const r = await fetch(API + '/api/demo', { method: 'POST' }); const d = await r.json(); if (!r.ok) throw new Error(d.detail || 'Demo failed'); await refresh(); setMessage(`Loaded ${d.loaded} safe demo events.`) }
+    try { const r = await fetch(API + '/api/demo', { method: 'POST', headers: authHeaders() }); const d = await r.json(); if (!r.ok) throw new Error(d.detail || 'Demo failed'); await refresh(); setMessage(`Loaded ${d.loaded} safe demo events.`) }
     catch (e) { setMessage(e instanceof Error ? e.message : 'Unable to load demo') }
     finally { setLoading(false) }
   }
   async function socketSnapshot() {
     setLoading(true)
     try {
-      const r = await fetch(API + '/api/collector/socket-snapshot', { method: 'POST' })
+      const r = await fetch(API + '/api/collector/socket-snapshot', { method: 'POST', headers: authHeaders() })
       const d = await r.json()
       if (!r.ok) throw new Error(d.detail || 'Socket snapshot failed')
       setMessage(`T1 snapshot complete: ${d.events?.length ?? 0} connections observed. Content was not inspected.${d.partial_visibility ? ' Partial visibility: check warnings.' : ''}`)
@@ -43,7 +45,7 @@ export default function App() {
   async function analyze() {
     setLoading(true)
     try {
-      const r = await fetch(API + '/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: { process: processName, destination: target, url: target, content, action: 'outbound_request', timestamp: new Date().toISOString() } }) })
+      const r = await fetch(API + '/api/analyze', { method: 'POST', headers: authHeaders({ 'Content-Type': 'application/json' }), body: JSON.stringify({ event: { process: processName, destination: target, url: target, content, action: 'outbound_request', timestamp: new Date().toISOString() } }) })
       const d = await r.json(); if (!r.ok) throw new Error(d.detail || 'Analysis failed'); await refresh(); setMessage(`Analysis complete: ${d.risk_level.toUpperCase()} risk, score ${d.risk_score}/100.`)
     } catch (e) { setMessage(e instanceof Error ? e.message : 'Analysis failed') }
     finally { setLoading(false) }
@@ -51,13 +53,13 @@ export default function App() {
   async function uploadFile(file?: File) {
     if (!file) return
     const fd = new FormData(); fd.append('file', file); setLoading(true)
-    try { const r = await fetch(API + '/api/upload-json', { method: 'POST', body: fd }); const d = await r.json(); if (!r.ok) throw new Error(d.detail || 'Upload failed'); await refresh(); setMessage(`Analyzed ${d.uploaded} events.`) }
+    try { const r = await fetch(API + '/api/upload-json', { method: 'POST', headers: authHeaders(), body: fd }); const d = await r.json(); if (!r.ok) throw new Error(d.detail || 'Upload failed'); await refresh(); setMessage(`Analyzed ${d.uploaded} events.`) }
     catch (e) { setMessage(e instanceof Error ? e.message : 'Upload failed') }
     finally { setLoading(false) }
   }
   async function investigate() {
     setLoading(true); setExplanation('')
-    try { const r = await fetch(API + '/api/investigate', { method: 'POST' }); const d = await r.json(); setExplanation(d.summary || d.message || 'No explanation returned.') }
+    try { const r = await fetch(API + '/api/investigate', { method: 'POST', headers: authHeaders() }); const d = await r.json(); setExplanation(d.summary || d.message || 'No explanation returned.') }
     catch { setExplanation('Could not reach backend.') }
     finally { setLoading(false) }
   }
@@ -86,6 +88,7 @@ export default function App() {
           <div className="divider"/><div className="score-label">AVERAGE RISK SCORE</div><div className="score">{summary.average_risk}<small>/ 100</small></div><div className="score-track"><div style={{width: summary.average_risk + '%'}}/></div>
         </section>
       </div>
+      <div className="panel" style={{ marginBottom: 16 }}><label>API bearer token (only if configured on the backend)<input type="password" autoComplete="off" value={apiToken} onChange={e => setApiToken(e.target.value)} placeholder="Leave blank for local development" /></label><small className="panel-foot">Token stays in this page session and is sent only to the configured API origin.</small></div>
       <div className="grid-bottom">
         <section className="panel"><div className="panel-head"><div><h2>Analyze an event</h2><p>Use synthetic test data; secret values are never echoed back.</p></div><Search size={17}/></div>
           <label>Process name<input value={processName} onChange={e=>setProcessName(e.target.value)}/></label><label>Destination / URL<input value={target} onChange={e=>setTarget(e.target.value)}/></label><label>Request text or action<textarea rows={3} value={content} onChange={e=>setContent(e.target.value)}/></label>
