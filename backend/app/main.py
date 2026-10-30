@@ -10,7 +10,8 @@ from pydantic import BaseModel, Field
 
 from .detector import analyze_event
 from .agent_audit import analyze_agent_event
-from .featherless import explain_findings\nfrom .collectors.socket import collect_socket_snapshot
+from .featherless import explain_findings
+from .collectors.socket import collect_socket_snapshot
 
 app = FastAPI(
     title="ShadowLens",
@@ -66,7 +67,16 @@ def health():
     return {"status": "ok", "service": "ShadowLens", "version": app.version, "socket_collector": "opt-in snapshot", "visibility": "T1 metadata only"}
 
 
-@app.post("/api/collector/socket-snapshot")\ndef socket_snapshot():\n    """Run a single local socket metadata snapshot after explicit user action."""\n    try:\n        return collect_socket_snapshot()\n    except RuntimeError as exc:\n        raise HTTPException(status_code=503, detail=str(exc)) from exc\n\n\n@app.get("/api/analyses")
+@app.post("/api/collector/socket-snapshot")
+def socket_snapshot():
+    """Run a single local socket metadata snapshot after explicit user action."""
+    try:
+        return collect_socket_snapshot()
+    except RuntimeError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+@app.get("/api/analyses")
 def analyses(limit: int = 100):
     return list(reversed(load_records()))[:max(1, min(limit, 500))]
 
