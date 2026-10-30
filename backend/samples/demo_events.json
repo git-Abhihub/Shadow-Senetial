@@ -1,0 +1,34 @@
+[
+  {
+    "timestamp": "2026-10-30T10:00:00Z",
+    "process": "python.exe",
+    "destination": "api.openai.com",
+    "url": "https://api.openai.com/v1/chat/completions",
+    "method": "POST",
+    "content": "Summarize this document. api_key=sk-EXAMPLE_DEMO_KEY_1234567890",
+    "action": "outbound_request"
+  },
+  {
+    "timestamp": "2026-10-30T10:01:00Z",
+    "process": "ollama.exe",
+    "destination": "127.0.0.1:11434",
+    "url": "http://127.0.0.1:11434/api/chat",
+    "content": "local test prompt",
+    "action": "outbound_request"
+  },
+  {
+    "timestamp": "2026-10-30T10:02:00Z",
+    "process": "node.exe",
+    "destination": "unknown",
+    "content": "cat .env",
+    "action": "shell_command"
+  },
+  {
+    "timestamp": "2026-10-30T10:03:00Z",
+    "process": "python.exe",
+    "destination": "api.anthropic.com",
+    "url": "https://api.anthropic.com/v1/messages",
+    "content": "Contact test@example.com about the release",
+    "action": "outbound_request"
+  }
+]
