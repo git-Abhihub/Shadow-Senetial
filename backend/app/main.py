@@ -10,12 +10,12 @@ from pydantic import BaseModel, Field
 
 from .detector import analyze_event
 from .agent_audit import analyze_agent_event
-from .featherless import explain_findings
+from .featherless import explain_findings\nfrom .collectors.socket import collect_socket_snapshot
 
 app = FastAPI(
-    title="ShadowSentinel AI",
+    title="ShadowLens",
     version="0.2.0",
-    description="Privacy-conscious AI Shadow IT and agent audit MVP",
+    description="Local-first AI Shadow IT and agent-governance auditor",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -58,12 +58,12 @@ class EventRequest(BaseModel):
 
 @app.get("/")
 def root():
-    return {"name": "ShadowSentinel AI", "status": "running", "docs": "/docs"}
+    return {"name": "ShadowLens", "status": "running", "docs": "/docs"}
 
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "ShadowSentinel AI", "version": app.version}
+    return {"status": "ok", "service": "ShadowLens", "version": app.version, "socket_collector": "opt-in snapshot", "visibility": "T1 metadata only"}
 
 
 @app.get("/api/analyses")
