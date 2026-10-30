@@ -26,6 +26,22 @@ def _entropy(value: str) -> float:
     counts = Counter(value)
     return -sum((n / len(value)) * math.log2(n / len(value)) for n in counts.values())
 
+def _passes_luhn(value: str) -> bool:
+    digits = "".join(ch for ch in value if ch.isdigit())
+    if not 13 <= len(digits) <= 19:
+        return False
+    total = 0
+    parity = len(digits) % 2
+    for index, char in enumerate(digits):
+        digit = int(char)
+        if index % 2 == parity:
+            digit *= 2
+            if digit > 9:
+                digit -= 9
+        total += digit
+    return total % 10 == 0
+
+
 def _content_for_scan(event: dict) -> str:
     # Scan only fields that may contain request text or agent commands.
     keys = ("content", "body", "prompt", "command", "file_path", "arguments")
@@ -40,6 +56,18 @@ def analyze_event(event: dict) -> dict:
     for label, pattern, severity in PATTERNS:
         if pattern.search(content):
             findings.append({"type": label, "severity": severity, "evidence": "Credential/PII pattern matched; raw value withheld."})
+
+    # Payment-card candidates are only reported after Luhn validation. Evidence is masked.
+    for match in CARD_CANDIDATE_RE.finditer(content):
+        candidate = match.group(0)
+        digits = "".join(ch for ch in candidate if ch.isdigit())
+        if _passes_luhn(candidate):
+            findings.append({
+                "type": "Possible payment card number",
+                "severity": "high",
+                "evidence": f"Payment-card checksum matched; masked value ****{digits[-4:]} (raw value withheld).",
+            })
+            break
 
     if READ_COMMAND_RE.search(content) and SENSITIVE_FILE_RE.search(content):
         findings.append({"type": "Agent reading sensitive file", "severity": "high", "evidence": "Command and path match a sensitive-file access pattern."})
