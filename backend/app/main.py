@@ -66,7 +66,7 @@ def health():
     return {"status": "ok", "service": "ShadowLens", "version": app.version, "socket_collector": "opt-in snapshot", "visibility": "T1 metadata only"}
 
 
-@app.get("/api/analyses")
+@app.post("/api/collector/socket-snapshot")\ndef socket_snapshot():\n    """Run a single local socket metadata snapshot after explicit user action."""\n    try:\n        return collect_socket_snapshot()\n    except RuntimeError as exc:\n        raise HTTPException(status_code=503, detail=str(exc)) from exc\n\n\n@app.get("/api/analyses")
 def analyses(limit: int = 100):
     return list(reversed(load_records()))[:max(1, min(limit, 500))]
 
