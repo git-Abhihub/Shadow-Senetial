@@ -12,6 +12,7 @@ from .detector import analyze_event
 from .agent_audit import analyze_agent_event
 from .featherless import explain_findings
 from .collectors.socket import collect_socket_snapshot
+from .storage import load_records as load_sqlite_records, append_records as append_sqlite_records
 
 app = FastAPI(
     title="ShadowLens",
@@ -23,34 +24,23 @@ app.add_middleware(
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
     allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 DATA_DIR = Path(__file__).resolve().parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
-DB_FILE = DATA_DIR / "analyses.json"
+DB_FILE = DATA_DIR / "shadowlens.sqlite3"
+LEGACY_FILE = DATA_DIR / "analyses.json"
 MAX_UPLOAD_BYTES = 2_000_000
 MAX_EVENTS_PER_UPLOAD = 1000
 
 
 def load_records() -> list[dict]:
-    if not DB_FILE.exists():
-        return []
-    try:
-        data = json.loads(DB_FILE.read_text(encoding="utf-8"))
-        return data if isinstance(data, list) else []
-    except (json.JSONDecodeError, OSError):
-        return []
-
-
-def save_records(records: list[dict]) -> None:
-    DB_FILE.write_text(json.dumps(records[-500:], indent=2), encoding="utf-8")
+    return load_sqlite_records(DB_FILE, LEGACY_FILE)
 
 
 def persist(results: list[dict]) -> None:
-    records = load_records()
-    records.extend(results)
-    save_records(records)
+    append_sqlite_records(DB_FILE, results, LEGACY_FILE)
 
 
 class EventRequest(BaseModel):
@@ -64,7 +54,38 @@ def root():
 
 @app.get("/api/health")
 def health():
-    return {"status": "ok", "service": "ShadowLens", "version": app.version, "socket_collector": "opt-in snapshot", "visibility": "T1 metadata only"}
+    return {
+        "status": "ok",
+        "service": "ShadowLens",
+        "version": app.version,
+        "persistence": "sqlite",
+        "socket_collector": "opt-in snapshot",
+        "visibility": "T1 metadata only",
+    }
+
+
+@app.get("/api/coverage")
+def coverage():
+    """Report collection coverage explicitly; do not imply complete device visibility."""
+    return {
+        "coverage": "partial",
+        "tiers": {
+            "T1": {"status": "available", "description": "Observed metadata from manual events and opt-in socket snapshots"},
+            "T2": {"status": "not_implemented", "description": "Flow-shape inference is not yet available"},
+            "T3": {"status": "not_implemented", "description": "Authorized plaintext inspection is not enabled"},
+        },
+        "collectors": {
+            "manual_json": "available",
+            "socket_snapshot": "opt_in",
+            "har": "not_implemented",
+            "pcap_metadata": "not_implemented",
+        },
+        "limitations": [
+            "Socket snapshots are best-effort and may be limited by OS permissions.",
+            "TLS-encrypted request bodies are not inspected.",
+            "An unknown provider or destination is not proof of malicious activity.",
+        ],
+    }
 
 
 @app.post("/api/collector/socket-snapshot")
