@@ -6,6 +6,7 @@ from typing import Any
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from .auth import OptionalLocalAuthMiddleware
 from pydantic import BaseModel, Field
 
 from .detector import analyze_event
@@ -19,6 +20,7 @@ app = FastAPI(
     version="0.2.0",
     description="Local-first AI Shadow IT and agent-governance auditor",
 )
+app.add_middleware(OptionalLocalAuthMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
