@@ -28,4 +28,4 @@ Do not start advanced milestones before the previous gate is testable. The curre
 - JSON/JSONL event analysis and synthetic demo fixtures exist.
 - The deterministic detector supports a small initial subset of secret patterns.
 - The opt-in socket snapshot collector emits T1 metadata only; it is not a continuous monitor and cannot inspect encrypted request bodies.
-- SQLite persistence, bearer-token authentication, PCAP ingestion, HAR support, full PII validators, complete traceability, and the full dashboard remain pending unless backed by code and tests.
+- SQLite persistence and canonical models are implemented with tests. An optional bearer-token guard now protects POST endpoints when `SHADOWLENS_API_TOKEN` is configured; the default local-development mode remains unauthenticated and must stay loopback-bound. PCAP ingestion, HAR support, full PII validators, complete traceability, and the full dashboard remain pending.
