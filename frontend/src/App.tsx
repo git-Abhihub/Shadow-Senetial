@@ -30,7 +30,7 @@ export default function App() {
     catch (e) { setMessage(e instanceof Error ? e.message : 'Unable to load demo') }
     finally { setLoading(false) }
   }
-  async function analyze() {
+  async function socketSnapshot() {\n    setLoading(true)\n    try {\n      const r = await fetch(API + '/api/collector/socket-snapshot', { method: 'POST' })\n      const d = await r.json()\n      if (!r.ok) throw new Error(d.detail || 'Socket snapshot failed')\n      setMessage(`T1 snapshot complete: ${d.events?.length ?? 0} connections observed. Content was not inspected.${d.partial_visibility ? ' Partial visibility: check warnings.' : ''}`)\n    } catch (e) { setMessage(e instanceof Error ? e.message : 'Socket snapshot failed') }\n    finally { setLoading(false) }\n  }\n  async function analyze() {
     setLoading(true)
     try {
       const r = await fetch(API + '/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: { process: processName, destination: target, url: target, content, action: 'outbound_request', timestamp: new Date().toISOString() } }) })
@@ -79,7 +79,7 @@ export default function App() {
       <div className="grid-bottom">
         <section className="panel"><div className="panel-head"><div><h2>Analyze an event</h2><p>Use synthetic test data; secret values are never echoed back.</p></div><Search size={17}/></div>
           <label>Process name<input value={processName} onChange={e=>setProcessName(e.target.value)}/></label><label>Destination / URL<input value={target} onChange={e=>setTarget(e.target.value)}/></label><label>Request text or action<textarea rows={3} value={content} onChange={e=>setContent(e.target.value)}/></label>
-          <div className="actions"><button className="button primary" disabled={loading} onClick={() => void analyze()}><Search size={15}/> Analyze event</button><button className="button secondary" disabled={loading} onClick={() => void loadDemo()}><Zap size={15}/> Load demo</button></div>
+          <div className="actions"><button className="button primary" disabled={loading} onClick={() => void analyze()}><Search size={15}/> Analyze event</button><button className="button secondary" disabled={loading} onClick={() => void loadDemo()}><Zap size={15}/> Load demo</button><button className="button secondary" disabled={loading} onClick={() => void socketSnapshot()}><Activity size={15}/> Snapshot socket metadata</button></div><p className="panel-foot">Socket snapshot is opt-in and T1-only. HTTPS prompt bodies are not inspected.</p>
         </section>
         <section className="panel"><div className="panel-head"><div><h2>AI investigation</h2><p>Optional sanitized findings summary via Featherless.</p></div><ExternalLink size={17}/></div>
           <div className="ai-box"><div className="ai-mark">✳</div><div><strong>Remediation assistant</strong><p>Only finding labels, severities, and sanitized evidence are sent. Raw event content is not sent.</p></div></div>
@@ -88,7 +88,7 @@ export default function App() {
           <div className="privacy-note"><ShieldCheck size={15}/> Featherless API key is optional. Without it, local detection still works.</div>
         </section>
       </div>
-      <footer>SHADOWSENTINEL AI <span>•</span> HACKATHON MVP <span>•</span> PRIVACY-FIRST BY DESIGN</footer>
+      <footer>SHADOWLENS AI <span>•</span> HACKATHON MVP <span>•</span> PRIVACY-FIRST BY DESIGN</footer>
     </section>
   </main>
 }
