@@ -30,7 +30,17 @@ export default function App() {
     catch (e) { setMessage(e instanceof Error ? e.message : 'Unable to load demo') }
     finally { setLoading(false) }
   }
-  async function socketSnapshot() {\n    setLoading(true)\n    try {\n      const r = await fetch(API + '/api/collector/socket-snapshot', { method: 'POST' })\n      const d = await r.json()\n      if (!r.ok) throw new Error(d.detail || 'Socket snapshot failed')\n      setMessage(`T1 snapshot complete: ${d.events?.length ?? 0} connections observed. Content was not inspected.${d.partial_visibility ? ' Partial visibility: check warnings.' : ''}`)\n    } catch (e) { setMessage(e instanceof Error ? e.message : 'Socket snapshot failed') }\n    finally { setLoading(false) }\n  }\n  async function analyze() {
+  async function socketSnapshot() {
+    setLoading(true)
+    try {
+      const r = await fetch(API + '/api/collector/socket-snapshot', { method: 'POST' })
+      const d = await r.json()
+      if (!r.ok) throw new Error(d.detail || 'Socket snapshot failed')
+      setMessage(`T1 snapshot complete: ${d.events?.length ?? 0} connections observed. Content was not inspected.${d.partial_visibility ? ' Partial visibility: check warnings.' : ''}`)
+    } catch (e) { setMessage(e instanceof Error ? e.message : 'Socket snapshot failed') }
+    finally { setLoading(false) }
+  }
+  async function analyze() {
     setLoading(true)
     try {
       const r = await fetch(API + '/api/analyze', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event: { process: processName, destination: target, url: target, content, action: 'outbound_request', timestamp: new Date().toISOString() } }) })
