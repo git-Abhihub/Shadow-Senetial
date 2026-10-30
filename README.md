@@ -1,9 +1,9 @@
-# ShadowSentinel AI
+# ShadowLens
 AI Shadow IT & Agentic Data Exfiltration Scanner — hackathon MVP.
 
-## What it does
+## Current capabilities
 - Accepts JSON/JSONL audit events and analyzes them locally.
-- Identifies known AI endpoints and local LLM services (OpenAI, Anthropic, Hugging Face, Ollama).
+- Identifies known AI providers and local LLM endpoints from submitted events.\n- Offers an explicit, one-shot socket metadata snapshot (`POST /api/collector/socket-snapshot`) using `psutil`; this is T1 metadata only, not content inspection.
 - Flags exposed API keys, JWTs, email addresses, and risky agent actions.
 - Calculates severity and risk scores and shows findings in a dashboard.
 - Optionally asks Featherless AI for a remediation summary using only sanitized findings.
@@ -34,7 +34,7 @@ npm run dev
 ```
 Open the URL printed by Vite (usually http://localhost:5173).
 
-## Event format
+## Spec-driven development\nThe implementation baseline and milestone gates are tracked in [`docs/SDD.md`](docs/SDD.md). This repository is a work in progress against the Unified Master Specification; not all P0 requirements are implemented yet.\n\n## Event format
 Upload a JSON array, a single JSON object, or JSONL. Example:
 ```json
 {
