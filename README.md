@@ -26,6 +26,9 @@ uvicorn app.main:app --reload
 ```
 API docs: http://127.0.0.1:8000/docs
 
+### Local API protection
+By default, keep the backend bound to loopback (`127.0.0.1`) and do not expose it to your LAN or the public internet. To require a bearer token for all POST endpoints, set `SHADOWLENS_API_TOKEN` in `backend/.env` to a long random value. Requests then need `Authorization: Bearer <token>`. The current browser UI is designed for the unconfigured local-development mode; enable token protection when using API clients that can attach the header.
+
 ### Frontend (terminal 2)
 ```powershell
 cd frontend
