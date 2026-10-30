@@ -57,9 +57,9 @@ def collect_socket_snapshot() -> dict[str, Any]:
     for conn in connections:
         if not conn.raddr or not conn.laddr:
             continue
-        remote_ip = str(getattr(conn.raddr, "ip", conn.raddr[0]))
-        remote_port = int(getattr(conn.raddr, "port", conn.raddr[1]))
-        local_port = int(getattr(conn.laddr, "port", conn.laddr[1]))
+        remote_ip = str(getattr(conn.raddr, "ip", None) or conn.raddr[0])
+        remote_port = int(getattr(conn.raddr, "port", None) or conn.raddr[1])
+        local_port = int(getattr(conn.laddr, "port", None) or conn.laddr[1])
         process_name = "unknown"
         exe = None
         username = None
