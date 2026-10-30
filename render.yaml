@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: shadowlens-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11
+      - key: SHADOWLENS_CORS_ORIGINS
+        value: https://shadowlens-dashboard.onrender.com
+      - key: SHADOWLENS_API_TOKEN
+        sync: false
+  - type: web
+    name: shadowlens-dashboard
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://shadowlens-api.onrender.com
